@@ -2,12 +2,12 @@
 
 namespace App\Nova;
 
-use Laravel\Nova\Fields\ID;
 use Illuminate\Http\Request;
-use Laravel\Nova\Fields\Text;
+use Laravel\Nova\Fields\DateTime;
 use Laravel\Nova\Fields\Gravatar;
+use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Password;
-use Laravel\Nova\Http\Requests\NovaRequest;
+use Laravel\Nova\Fields\Text;
 
 class User extends Resource
 {
@@ -16,7 +16,7 @@ class User extends Resource
      *
      * @var string
      */
-    public static $model = 'App\\User';
+    public static $model = \App\Models\User::class;
 
     /**
      * The single value that should be used to represent the resource when being displayed.
@@ -45,7 +45,7 @@ class User extends Resource
         return [
             ID::make()->sortable(),
 
-            Gravatar::make(),
+            Gravatar::make()->maxWidth(50),
 
             Text::make('Name')
                 ->sortable()
@@ -61,6 +61,9 @@ class User extends Resource
                 ->onlyOnForms()
                 ->creationRules('required', 'string', 'min:8')
                 ->updateRules('nullable', 'string', 'min:8'),
+
+            DateTime::make('created_at')
+                    ->updateRules('required', 'date'),
         ];
     }
 
@@ -106,17 +109,5 @@ class User extends Resource
     public function actions(Request $request)
     {
         return [];
-    }
-
-    /**
-     * Return the location to redirect the user after update.
-     *
-     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
-     * @param  \App\Nova\Resource  $resource
-     * @return string
-     */
-    public static function redirectAfterUpdate(NovaRequest $request, $resource)
-    {
-        return '/resources/'.static::uriKey().'/'.$resource->getKey().'/edit';//;
     }
 }
