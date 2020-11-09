@@ -3,10 +3,10 @@
 namespace App\Nova;
 
 use Illuminate\Http\Request;
-use Laravel\Nova\Fields\DateTime;
 use Laravel\Nova\Fields\Gravatar;
 use Laravel\Nova\Fields\ID;
 use Laravel\Nova\Fields\Password;
+use Laravel\Nova\Fields\Slug;
 use Laravel\Nova\Fields\Text;
 
 class User extends Resource
@@ -51,6 +51,25 @@ class User extends Resource
                 ->sortable()
                 ->rules('required', 'max:255'),
 
+            Slug::make('Slug')
+                ->from('name')
+                ->hideWhenUpdating(true)
+                ->rules('max:255')
+                ->creationRules('unique:users,slug')
+                ->updateRules('unique:users,slug,{{resourceId}}')
+                ->onlyOnForms(),
+
+            Slug::make('Slug')
+                ->from('name')
+                ->readonly($this->checkPermissions($request))
+                ->help(
+                    $this->id ? '<a target="_blank" href="#">Some html link</a>' : ''
+                )
+                ->rules('max:255')
+                ->creationRules('unique:users,slug')
+                ->updateRules('unique:users,slug,{{resourceId}}')
+                ->onlyOnForms(),
+
             Text::make('Email')
                 ->sortable()
                 ->rules('required', 'email', 'max:254')
@@ -61,10 +80,12 @@ class User extends Resource
                 ->onlyOnForms()
                 ->creationRules('required', 'string', 'min:8')
                 ->updateRules('nullable', 'string', 'min:8'),
-
-            DateTime::make('created_at')
-                    ->updateRules('required', 'date'),
         ];
+    }
+
+    private function checkPermissions( $request ) {
+        //Some logic to check current user permissions
+        return false;
     }
 
     /**
